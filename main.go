@@ -9,12 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var (
-	event = "pytorch2024"
-	date  = "2024-09-19"
-)
-
-func main() {
+func download(event string) {
 	// create download dir
 	err := os.MkdirAll("data", os.ModePerm)
 	if err != nil {
@@ -34,7 +29,7 @@ func main() {
 	err = c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 1,
-		Delay:       8 * time.Second,
+		RandomDelay: 8 * time.Second,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("Failed setting rate limiting")
@@ -54,7 +49,7 @@ func main() {
 		text := e.Attr("href")
 
 		// open file
-		f, err := os.OpenFile("data/urls.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(fmt.Sprintf("data/%s.txt", event), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
 			panic(err)
 		}
@@ -69,11 +64,66 @@ func main() {
 	})
 
 	// start spider
-	url := fmt.Sprintf("https://%s.sched.com/%s/overview", event, date)
+	url := fmt.Sprintf("https://%s.sched.com/overview", event)
 	fmt.Printf("Start crawling %s\n", url)
 
 	err = c.Visit(url)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to visit talk overview")
+	}
+
+	fmt.Print("\n")
+}
+
+func main() {
+	events := []string{
+		"kccnceu2021",
+		"kccnceu2022",
+		"kccnceu2023",
+		"kccnceu2024",
+		//"kccncna19",
+		//"kccncna20",
+		//"kccncna2021",
+		//"kccncna2022",
+		//"kccncna2023",
+		//"kccncossaidevchn2024",
+		//"kccncosschn19chi",
+		//"kccncosschn19eng",
+		//"kccncosschn2023",
+		//"kccncosschn21",
+		//"kcsna2019",
+		//"knativeconeu22",
+		//"knativeconna22",
+		//"kubecon-eu-21-all",
+		//"kubecon-eu-22-all",
+		//"kubecon-eu-23-all",
+		//"kubecon-eu-24-all",
+		//"kubecon-na-21-all",
+		//"kubecon-na-22-all",
+		//"kubecon-na-23-all",
+		//"kubenetesedgedayeu21",
+		//"kubernetesaidayeu22",
+		//"kubernetesaidayna21",
+		//"kubernetesaidayna22",
+		//"kubernetesbatchdayeu22",
+		//"kubernetesbatchdayna22",
+		//"kubernetesonedgedayeu22",
+		//"kubernetesonedgedayna22",
+		//"magmadayeu21",
+		//"onesummit2021",
+		//"openobservabilitydayna22",
+		//"otcdna20",
+		//"promconna21",
+		//"promcononline2021",
+		//"prometheusdayeu22",
+		//"servicemeshconeu20",
+		//"servicemeshconeu21",
+		//"servicemeshconeu22",
+		//"servicemeshconna21",
+		//"smcna20",
+		//"spiffespiredayna20",
+	}
+	for _, event := range events {
+		download(event)
 	}
 }
